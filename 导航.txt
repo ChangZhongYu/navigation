@@ -1,0 +1,20 @@
+在长期的上网过程中，收藏了许多网页，现需构建一个导航网站用于更好的归纳分类和浏览。该项目要考虑可扩展性和响应式设计及美观有视觉层次。导航做三级菜单，一级大分类，二级小分类，三级具体网址。收藏数据从本地读取，按照数据的三级标签放入到导航页中。导航网址用小卡片展示，网址图标和标题，点击跳转。
+根据谷歌导出的书签bookmarks_2025_4_1.html，按照书签中的分类，将网址参照data.json的数据格式整合成新的数据，如果原书签中不包含data数据中的数据则填入空字符，但id除外，id由系统自动按照标签级别和录入顺序生成。另外值得注意的是，书签数据并非严格的按照三级菜单，可能只有两级或者1级。对于这些数据直接放入对应的菜单下就好了。
+
+编写一个程序用于提取谷歌书签中收藏的网页，该书签网页的结构一般为二级目录：一级目录下收藏有网址书签，可能还有二级目录，二级目录下也有网址书签。
+提取网页中的所有书签，并按照目录结构分类，归纳为一份JSON文件，可以参考data.json的结构。
+采用xpath定位，/html/body/dl/dt[1]/dl该xpath路径下一级的<dt>是所有一级目录标签，其下的第一个<h3>内容为一级目录名称。
+
+第一个一级目录下的第一个二级目录的xpath路径为/html/body/dl/dt[1]/dl/dt[1]/dl/dt[1]其下的第一个<h3>内容为二级级目录名称
+
+第一个一级目录下的第一个二级目录的第一个书签xpath路径为/html/body/dl/dt[1]/dl/dt[1]/dl/dt[1]/dl/dt[1]
+
+标签的结构如下：
+<A HREF="https://chat.deepseek.com/" ADD_DATE="1738892005" ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACcklEQVQ4jY2TO4icZRSGn/f7/v+fnVmzkEajomKjMIIQQ1C0WRHRzWDhZbAJiAHNZhPBLmJjCkWx0sLdmCAIwcZRC82IES+DKNgYxCKgnQQRkRCNy1z+y/darEtWyYKnOncOh/eBbc1aXHQG1mZ82b+SHXPYvniFvmMOYP1rY7fv4qZdzDV/0MQ2u7KMh5uG0cdv8l3vEHfUNTvPnNRnW2f+OVHuHfbRKA7YXB13eAosxEKdcswekJHv7FzFC/uWveKc07Fhr+EuAfQONa+0OuFoNTUgJEjJxKgqJb4Z/8VjRae6sT2fn62mjG3Oz81z62TdAy0tV/cURfa1BAhSDcmuMRGTWh3FcsoPs0vcne/g2SzjRYC64avKk/1ZCOGJpuZTEu9Z7FbwI1mua5rSDUFhOvHPWabbiwV/Se13HIJT4rnhql4FCLJuSSl9cvq4Tg7XtFJV2l2VvB1yxZBh7NFsRi8Eunk7vGbjqmbjkX3HQOBPBd0HVrfv4swJ/Tpc1ZOp4i2JEKP2K1I3tV4POXWyz88u8hMAAzVB6PMQtHT/Aa49N1DJojOAj37nYF35+5ApRvwh8mFMZvv90UDrm6IKKXEKuNDu+AQAI9UPrnjvIrQnpR5PDZWCWjFoYTbmbFOGlzYUIAOE4Zou1olnio56Dx3xqW7fRXR6dOf1fFuIpixZkjzNWggxcslsq6S1KaR9B72ctbyWGi5h1uc6um42caWgN1LtG0KmecTNTc3zw1V9AA6gtAUU+YGnfFuec0Rwb8Klgn7D/DhuePmL4/ql23dxbqByO/ouw9R/N+552vn/guu/S/p9x62ZjXh7jP8GIyojXsMDG+sAAAAASUVORK5CYII=">DeepSeek - 探索未至之境</A>
+HREF的网址是"url"的值
+ICON的值是"icon"的值
+DeepSeek - 探索未至之境是"title"的值
+"id"由系统自动按照目录级别和录入顺序生成
+
+如图所示，该网页的所含<p>标签的结束标签</p>错位到了下一行，请写一个程序将</p>接到<p>标签后面，并</p>后的标签缩进到正确的位置。
+我发现除了</p>错位外，还有</dt>标签也错位。现在给定规则，如果</dt>是在每行的首个标签，则移动到上一行末尾，同行的代码前移一个缩进。如果不是首个标签则左缩进一个TAB。

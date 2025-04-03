@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网址导航</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧一级导航栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>我的导航</h1>
+            </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索网站...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <nav class="main-nav">
+                <ul id="category-list">
+                    <!-- 一级分类将通过JavaScript动态生成 -->
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- 面包屑导航 -->
+            <div class="breadcrumb" id="breadcrumb">
+                <span>首页</span>
+            </div>
+
+            <!-- 二级分类标签 -->
+            <div class="subcategory-tabs" id="subcategory-tabs">
+                <!-- 二级分类将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 网站卡片区域 -->
+            <div class="sites-container" id="sites-container">
+                <!-- 网站卡片将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 搜索结果区域 -->
+            <div class="search-results" id="search-results">
+                <h2>搜索结果</h2>
+                <div class="sites-container" id="search-results-container">
+                    <!-- 搜索结果将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>© 2023 个人网址导航 - 让网络冲浪更高效</p>
+    </footer>
+
+    <script src="assets/script.js"></script>
+</body>
+</html>
