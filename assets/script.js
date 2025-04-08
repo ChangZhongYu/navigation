@@ -17,7 +17,7 @@ const searchResultsContainer = document.getElementById('search-results-container
 async function init() {
     try {
         // 从本地JSON文件加载数据
-        const response = await fetch('data/output copy.json');
+        const response = await fetch('data/output.json');
         const data = await response.json();
         navigationData = data.categories;
         

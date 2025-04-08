@@ -41,12 +41,12 @@
 
 ### 从浏览器书签导入
 
-1. 从浏览器导出书签为HTML文件，命名为`bookmarks_content.html`
+1. 从浏览器导出书签为HTML文件，命名为`bookmarks_content.html`特别注意的是，要从F12中复制出的源码才是完整的网页，才包含head和body标签，才能被extract_bookmarks.py正确提取数据。
 2. 使用标签修复脚本处理HTML文件：
    ```bash
    python scripts/fix_html_tags.py
    ```
-3. 使用书签提取脚本生成JSON数据：
+3. 使用书签提取脚本生成JSON数据（输出的数据需要把标签栏一级删除，将其子标签subcategories提级为categories，数据显示才正常）：
    ```bash
    python scripts/extract_bookmarks.py
    ```
