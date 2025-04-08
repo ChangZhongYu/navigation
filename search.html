@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网址导航</title>
+    <title>搜索结果 - 网址导航</title>
     <link rel="stylesheet" href="assets/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -33,21 +33,16 @@
             <!-- 面包屑导航 -->
             <div class="breadcrumb" id="breadcrumb">
                 <span>首页</span>
-            </div>
-
-            <!-- 二级分类标签 -->
-            <div class="subcategory-tabs" id="subcategory-tabs">
-                <!-- 二级分类将通过JavaScript动态生成 -->
-            </div>
-
-            <!-- 网站卡片区域 -->
-            <div class="sites-container" id="sites-container">
-                <!-- 网站卡片将通过JavaScript动态生成 -->
+                <span>搜索结果</span>
             </div>
 
             <!-- 搜索结果区域 -->
-            <div class="search-results" id="search-results">
-                <h2>搜索结果</h2>
+            <div class="search-results active" id="search-results">
+                <h2 id="search-results-title">搜索结果</h2>
+                <div class="search-controls">
+                    <button id="back-to-home" class="back-btn"><i class="fas fa-arrow-left"></i> 返回首页</button>
+                    <button id="clear-search" class="clear-search-btn"><i class="fas fa-times"></i> 清空搜索</button>
+                </div>
                 <div class="sites-container" id="search-results-container">
                     <!-- 搜索结果将通过JavaScript动态生成 -->
                 </div>

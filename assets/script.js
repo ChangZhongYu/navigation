@@ -24,16 +24,50 @@ async function init() {
         // 渲染一级分类
         renderCategories();
         
-        // 默认选中第一个分类
-        if (navigationData.length > 0) {
-            selectCategory(navigationData[0]);
+        // 判断当前是否在搜索页面
+        const isSearchPage = window.location.pathname.includes('search.html');
+        
+        if (isSearchPage) {
+            // 如果是搜索页面，设置返回首页和清空搜索按钮的事件
+            setupSearchPageListeners();
+            
+            // 从URL获取搜索参数并执行搜索
+            const urlParams = new URLSearchParams(window.location.search);
+            const query = urlParams.get('q');
+            
+            if (query) {
+                // 设置搜索框的值
+                searchInput.value = query;
+                // 执行搜索
+                performSearch();
+            }
+        } else {
+            // 如果不是搜索页面，渲染所有二级分类
+            renderAllSubcategories();
+            
+            // 检查URL中是否有锚点，如果有则滚动到对应位置
+            if (window.location.hash) {
+                const categoryId = window.location.hash.substring(1);
+                const categoryElement = document.getElementById(`category-${categoryId}`);
+                if (categoryElement) {
+                    categoryElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else if (navigationData.length > 0) {
+                // 如果没有锚点，默认选中第一个分类
+                highlightCategory(navigationData[0]);
+            }
         }
         
         // 设置搜索事件监听
         setupSearchListeners();
+        
+        // 设置侧边栏切换按钮事件监听
+        setupSidebarToggle();
     } catch (error) {
         console.error('加载数据失败:', error);
-        sitesContainer.innerHTML = `<div class="error-message">加载数据失败，请检查网络连接或刷新页面重试。</div>`;
+        if (sitesContainer) {
+            sitesContainer.innerHTML = `<div class="error-message">加载数据失败，请检查网络连接或刷新页面重试。</div>`;
+        }
     }
 }
 
@@ -45,16 +79,30 @@ function renderCategories() {
         const li = document.createElement('li');
         li.textContent = category.name;
         li.dataset.id = category.id;
-        li.addEventListener('click', () => selectCategory(category));
+        
+        // 修改点击事件，使用锚点跳转到对应的二级菜单位置
+        li.addEventListener('click', () => {
+            // 高亮显示当前选中的一级分类
+            highlightCategory(category);
+            
+            // 使用锚点跳转到对应的二级菜单位置
+            const categoryElement = document.getElementById(`category-${category.id}`);
+            if (categoryElement) {
+                categoryElement.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // 更新URL中的锚点，但不刷新页面
+            history.pushState(null, null, `#${category.id}`);
+        });
+        
         categoryList.appendChild(li);
     });
 }
 
-// 选择一级分类
-function selectCategory(category) {
+// 高亮显示当前选中的一级分类
+function highlightCategory(category) {
     // 更新当前选中的分类
     currentCategory = category;
-    currentSubcategory = null;
     
     // 更新UI状态
     const categoryItems = categoryList.querySelectorAll('li');
@@ -69,34 +117,112 @@ function selectCategory(category) {
     // 更新面包屑
     updateBreadcrumb();
     
-    // 检查一级目录是否直接包含网址
-    let processedSubcategories = [...(category.subcategories || [])];
+    // 隐藏搜索结果
+    searchResults.style.display = 'none';
+}
+
+// 渲染所有二级分类
+function renderAllSubcategories() {
+    // 清空主内容区域
+    sitesContainer.innerHTML = '';
+    subcategoryTabs.innerHTML = '';
     
-    if (category.sites && category.sites.length > 0) {
-        // 如果一级目录下有网址，创建一个名为"未归档"的二级分类
-        const unfiledSubcategory = {
-            id: `${category.id}-unfiled`,
-            name: "未归档",
-            sites: category.sites
-        };
+    // 遍历所有一级分类
+    navigationData.forEach(category => {
+        // 创建一级分类标题
+        const categoryTitle = document.createElement('div');
+        categoryTitle.className = 'category-section';
+        categoryTitle.id = `category-${category.id}`;
         
-        // 将未归档分类添加到二级分类列表的开头
-        processedSubcategories.unshift(unfiledSubcategory);
-    }
-    
-    // 渲染二级分类
-    renderSubcategories(processedSubcategories);
-    
-    // 默认选中第一个二级分类
-    if (processedSubcategories.length > 0) {
-        selectSubcategory(processedSubcategories[0]);
-    } else {
-        // 如果没有二级分类，清空网站列表
-        sitesContainer.innerHTML = '<div class="empty-message">该分类下暂无内容</div>';
-    }
+        const titleHeader = document.createElement('h2');
+        titleHeader.textContent = category.name;
+        categoryTitle.appendChild(titleHeader);
+        
+        sitesContainer.appendChild(categoryTitle);
+        
+        // 处理二级分类
+        let processedSubcategories = [...(category.subcategories || [])];
+        
+        if (category.sites && category.sites.length > 0) {
+            // 如果一级目录下有网址，创建一个名为"未归档"的二级分类
+            const unfiledSubcategory = {
+                id: `${category.id}-unfiled`,
+                name: "未归档",
+                sites: category.sites
+            };
+            
+            // 将未归档分类添加到二级分类列表的开头
+            processedSubcategories.unshift(unfiledSubcategory);
+        }
+        
+        // 为当前分类创建二级分类标签区域
+        const subcategoryTabsContainer = document.createElement('div');
+        subcategoryTabsContainer.className = 'subcategory-tabs-container';
+        subcategoryTabsContainer.id = `subcategory-tabs-${category.id}`;
+        categoryTitle.appendChild(subcategoryTabsContainer);
+        
+        // 为当前分类创建网站容器
+        const categoryContentContainer = document.createElement('div');
+        categoryContentContainer.className = 'category-content';
+        categoryContentContainer.id = `category-content-${category.id}`;
+        sitesContainer.appendChild(categoryContentContainer);
+        
+        // 渲染当前分类的二级分类
+        renderSubcategoriesForCategory(processedSubcategories, subcategoryTabsContainer, categoryContentContainer);
+    });
     
     // 隐藏搜索结果
     searchResults.style.display = 'none';
+}
+
+// 为特定分类渲染二级分类
+function renderSubcategoriesForCategory(subcategories, tabsContainer, contentContainer) {
+    if (!subcategories || subcategories.length === 0) {
+        contentContainer.innerHTML = '<div class="empty-message">该分类下暂无内容</div>';
+        return;
+    }
+    
+    // 渲染二级分类标签
+    subcategories.forEach((subcategory, index) => {
+        const tab = document.createElement('div');
+        tab.className = 'subcategory-tab';
+        if (index === 0) tab.classList.add('active');
+        tab.textContent = subcategory.name;
+        tab.dataset.id = subcategory.id;
+        tab.addEventListener('click', () => {
+            // 移除所有标签的活动状态
+            tabsContainer.querySelectorAll('.subcategory-tab').forEach(t => t.classList.remove('active'));
+            // 添加当前标签的活动状态
+            tab.classList.add('active');
+            // 渲染该二级分类下的网站
+            renderSitesForCategory(subcategory.sites, contentContainer);
+        });
+        tabsContainer.appendChild(tab);
+    });
+    
+    // 默认显示第一个二级分类的内容
+    if (subcategories.length > 0) {
+        renderSitesForCategory(subcategories[0].sites, contentContainer);
+    }
+}
+
+// 为特定分类渲染网站
+function renderSitesForCategory(sites, container) {
+    container.innerHTML = '';
+    
+    if (!sites || sites.length === 0) {
+        container.innerHTML = '<div class="empty-message">该分类下暂无网站</div>';
+        return;
+    }
+    
+    const sitesGrid = document.createElement('div');
+    sitesGrid.className = 'sites-grid';
+    container.appendChild(sitesGrid);
+    
+    sites.forEach(site => {
+        const card = createSiteCard(site);
+        sitesGrid.appendChild(card);
+    });
 }
 
 // 渲染二级分类标签
@@ -210,6 +336,13 @@ function setupSearchListeners() {
         // 如果输入框为空，隐藏搜索结果
         if (searchInput.value.trim() === '') {
             searchResults.style.display = 'none';
+            // 判断当前是否在搜索页面
+            const isSearchPage = window.location.pathname.includes('search.html');
+            if (isSearchPage) {
+                // 如果在搜索页面，重定向到首页
+                window.location.href = 'index.html';
+                return;
+            }
             return;
         }
         performSearch();
@@ -234,6 +367,15 @@ function performSearch() {
     if (query === '') {
         // 如果搜索框为空，隐藏搜索结果
         searchResults.style.display = 'none';
+        return;
+    }
+    
+    // 判断当前是否在搜索页面
+    const isSearchPage = window.location.pathname.includes('search.html');
+    
+    if (!isSearchPage) {
+        // 如果不在搜索页面，跳转到搜索页面并传递搜索参数
+        window.location.href = `search.html?q=${encodeURIComponent(query)}`;
         return;
     }
     
@@ -289,7 +431,7 @@ function displaySearchResults(results, query) {
     searchResults.style.display = 'block';
     
     // 更新搜索结果标题
-    const searchResultsTitle = searchResults.querySelector('h2');
+    const searchResultsTitle = document.getElementById('search-results-title') || searchResults.querySelector('h2');
     searchResultsTitle.textContent = `搜索结果: ${query} (${results.length})`;
     
     if (results.length === 0) {
@@ -297,28 +439,37 @@ function displaySearchResults(results, query) {
         return;
     }
     
-    // 添加清空搜索按钮
-    const clearSearchBtn = document.createElement('button');
-    clearSearchBtn.className = 'clear-search-btn';
-    clearSearchBtn.innerHTML = '<i class="fas fa-times"></i> 清空搜索';
-    clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        searchResults.style.display = 'none';
-        // 如果当前有选中的分类，则显示该分类的内容
-        if (currentCategory) {
-            if (currentSubcategory) {
-                selectSubcategory(currentSubcategory);
-            } else if (currentCategory.subcategories && currentCategory.subcategories.length > 0) {
-                selectSubcategory(currentCategory.subcategories[0]);
+    // 判断当前是否在搜索页面
+    const isSearchPage = window.location.pathname.includes('search.html');
+    
+    // 在非搜索页面时，添加清空搜索按钮
+    if (!isSearchPage) {
+        const clearSearchBtn = document.createElement('button');
+        clearSearchBtn.className = 'clear-search-btn';
+        clearSearchBtn.innerHTML = '<i class="fas fa-times"></i> 清空搜索';
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchResults.style.display = 'none';
+            // 如果当前有选中的分类，则显示该分类的内容
+            if (currentCategory) {
+                if (currentSubcategory) {
+                    selectSubcategory(currentSubcategory);
+                } else if (currentCategory.subcategories && currentCategory.subcategories.length > 0) {
+                    selectSubcategory(currentCategory.subcategories[0]);
+                }
             }
-        }
-    });
-    searchResultsContainer.appendChild(clearSearchBtn);
+        });
+        searchResultsContainer.appendChild(clearSearchBtn);
+    }
     
     // 创建搜索结果网格容器
-    const resultsGrid = document.createElement('div');
-    resultsGrid.className = 'sites-container';
-    searchResultsContainer.appendChild(resultsGrid);
+    // 确保searchResultsContainer已经有sites-container类
+    searchResultsContainer.classList.add('sites-container');
+    
+    // 创建网格布局容器，与主页的网站展示保持一致
+    const sitesGrid = document.createElement('div');
+    sitesGrid.className = 'sites-grid';
+    searchResultsContainer.appendChild(sitesGrid);
     
     // 按分类对结果进行排序
     results.sort((a, b) => {
@@ -330,12 +481,31 @@ function displaySearchResults(results, query) {
     
     // 显示搜索结果
     results.forEach(site => {
-        const card = createSiteCard(site);
+        // 创建卡片容器
+        const card = document.createElement('div');
+        card.className = 'site-card';
+        
+        // 创建图标
+        const img = document.createElement('img');
+        img.src = site.icon;
+        img.alt = site.title;
+        img.onerror = function() {
+            // 图标加载失败时使用默认图标
+            this.src = 'https://www.google.com/s2/favicons?domain=' + new URL(site.url).hostname;
+        };
+        
+        // 创建标题
+        const title = document.createElement('h3');
+        title.textContent = site.title;
         
         // 添加分类信息
         const categoryInfo = document.createElement('div');
         categoryInfo.className = 'category-info';
         categoryInfo.textContent = `${site.categoryName} > ${site.subcategoryName}`;
+        
+        // 添加到卡片
+        card.appendChild(img);
+        card.appendChild(title);
         card.appendChild(categoryInfo);
         
         // 添加点击事件，点击卡片时跳转到对应网站
@@ -343,8 +513,56 @@ function displaySearchResults(results, query) {
             window.open(site.url, '_blank');
         });
         
-        resultsGrid.appendChild(card);
+        // 将卡片添加到网格容器中，而不是直接添加到searchResultsContainer
+        sitesGrid.appendChild(card);
     });
+}
+
+// 设置搜索页面的事件监听
+function setupSearchPageListeners() {
+    // 返回首页按钮
+    const backToHomeBtn = document.getElementById('back-to-home');
+    if (backToHomeBtn) {
+        backToHomeBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    }
+    
+    // 清空搜索按钮
+    const clearSearchBtn = document.getElementById('clear-search');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            // 重定向到首页
+            window.location.href = 'index.html';
+        });
+    }
+}
+
+// 设置侧边栏切换按钮事件监听
+function setupSidebarToggle() {
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (toggleBtn && sidebar) {
+        // 检查本地存储中是否有保存的侧边栏状态
+        const sidebarState = localStorage.getItem('sidebarState');
+        if (sidebarState === 'collapsed') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        toggleBtn.addEventListener('click', () => {
+            // 切换侧边栏的收缩状态
+            sidebar.classList.toggle('collapsed');
+            
+            // 保存当前状态到本地存储
+            if (sidebar.classList.contains('collapsed')) {
+                localStorage.setItem('sidebarState', 'collapsed');
+            } else {
+                localStorage.setItem('sidebarState', 'expanded');
+            }
+        });
+    }
 }
 
 // 页面加载完成后初始化
