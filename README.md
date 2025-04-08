@@ -131,8 +131,8 @@
 
 如有任何问题或建议，请通过以下方式联系我：
 
-- 电子邮件：your.email@example.com
-- GitHub Issues：[提交问题](https://github.com/yourusername/navigation/issues)
+- 电子邮件：zhongyu.smile@gmail.com
+- GitHub Issues：[提交问题](https://github.com/ChangZhongYu/navigation/issues)
 
 ---
 

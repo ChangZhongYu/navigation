@@ -15,6 +15,8 @@ const searchResultsContainer = document.getElementById('search-results-container
 
 // 初始化函数
 async function init() {
+    // 设置页面加载状态
+    document.title = '加载中... | 网址导航';
     try {
         // 从本地JSON文件加载数据
         const response = await fetch('data/output.json');
@@ -63,6 +65,9 @@ async function init() {
         
         // 设置侧边栏切换按钮事件监听
         setupSidebarToggle();
+        
+        // 更新页面标题，移除加载状态
+        document.title = '网址导航';
     } catch (error) {
         console.error('加载数据失败:', error);
         if (sitesContainer) {
